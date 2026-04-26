@@ -1,0 +1,84 @@
+/* General Reset and Box Model */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Container Card */
+body > * {
+    background-color: #ffffff;
+    padding: 40px 50px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* Heading Styling */
+h1 {
+    font-size: 2rem;
+    color: #2a5298;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+/* Paragraph Styling */
+p {
+    font-size: 1.125rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+/* Highlight for dynamic content */
+p::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background-color: #2a5298;
+    margin: 20px auto 0;
+    border-radius: 2px;
+}
+
+/* Simple Fade In Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    body > * {
+        padding: 30px 25px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    p {
+        font-size: 1rem;
+    }
+}
+
