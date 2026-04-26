@@ -5,13 +5,6 @@ resource "aws_security_group" "flask_sg" {
   vpc_id = aws_default_vpc.default.id
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -59,29 +52,43 @@ resource "aws_default_subnet" "default_az1" {
   }
 }
 
+resource "aws_iam_role_policy_attachment" "ssm_access" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_instance" "flask_ec2" {
   ami                  = "ami-098e39bafa7e7303d"
   instance_type        = "t3.micro"
   subnet_id            = aws_default_subnet.default_az1.id
   vpc_security_group_ids = [aws_security_group.flask_sg.id]
-  key_name             = "flask-keypair"
+  # key_name             = "flask-keypair"
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
 
   user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              yum install docker -y
-              systemctl start docker
-              systemctl enable docker
+            #!/bin/bash
+            yum update -y
 
-              aws ecr get-login-password --region us-east-1 | \
-              docker login --username AWS --password-stdin 474150620111.dkr.ecr.us-east-1.amazonaws.com
+            # install docker
+            yum install docker -y
+            systemctl start docker
+            systemctl enable docker
 
-              docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+            # install SSM agent
+            yum install -y amazon-ssm-agent
+            systemctl enable amazon-ssm-agent
+            systemctl start amazon-ssm-agent
 
-              docker run -d -p 80:5000 --name flask-app \
-              474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
-              EOF
+            # login to ECR
+            aws ecr get-login-password --region us-east-1 | \
+            docker login --username AWS --password-stdin 474150620111.dkr.ecr.us-east-1.amazonaws.com
+
+            # pull & run app
+            docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+
+            docker run -d -p 80:5000 --name flask-app \
+            474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+            EOF
 
   tags = {
     Name = "Flask-App-EC2"
