@@ -42,20 +42,20 @@ pipeline {
 
 	stage('Deploy using SSM') {
     steps {
-        sh """
+        sh '''
         aws ssm send-command \
           --instance-ids "i-0fd26bf6b4b3967c1" \
           --document-name "AWS-RunShellScript" \
           --comment "Deploy Flask App" \
-          --parameters commands=[
+          --parameters '{"commands":[
+            "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 474150620111.dkr.ecr.us-east-1.amazonaws.com",
             "docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest",
             "docker stop flask-app || true",
             "docker rm flask-app || true",
             "docker run -d -p 80:5000 --name flask-app 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest"
-          ] \
-          --region us-east-1
-        """
-    		}	
+          ]}'
+        '''
+    		}
 	   }
      }
 }
