@@ -55,5 +55,11 @@ pipeline {
         }
     }
     }
+
+	stage('Add EC2 to known hosts') {
+    steps {
+        sh "ssh-keyscan -H 3.82.254.133 >> ~/.ssh/known_hosts"
+    }
+}
 }
 }
