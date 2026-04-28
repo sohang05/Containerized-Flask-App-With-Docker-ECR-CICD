@@ -46,17 +46,31 @@ pipeline {
             aws(credentialsId: 'aws-creds')
         ]) {
             sh '''
-            aws ssm send-command \
-            --instance-ids i-0fd26bf6b4b3967c1 \
-            --document-name "AWS-RunShellScript" \
-            --region us-east-1 \
-            --parameters 'commands=[
-              "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 474150620111.dkr.ecr.us-east-1.amazonaws.com",
-              "docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest",
-              "docker stop flask-app || true",
-              "docker rm flask-app || true",
-              "docker run -d -p 80:5000 --name flask-app 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest"
-            ]'
+            COMMAND_ID=$(aws ssm send-command \
+              --instance-ids i-0fd26bf6b4b3967c1 \
+              --document-name "AWS-RunShellScript" \
+              --region us-east-1 \
+              --query "Command.CommandId" \
+              --output text \
+              --parameters 'commands=[
+                "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 474150620111.dkr.ecr.us-east-1.amazonaws.com",
+                "docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest",
+                "docker stop flask-app || true",
+                "docker rm flask-app || true",
+                "docker run -d -p 80:5000 --name flask-app 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest"
+              ]')
+
+            echo "Command ID: $COMMAND_ID"
+
+            aws ssm wait command-executed \
+              --command-id $COMMAND_ID \
+              --instance-id i-0fd26bf6b4b3967c1 \
+              --region us-east-1
+
+            aws ssm list-command-invocations \
+              --command-id $COMMAND_ID \
+              --details \
+              --region us-east-1
             '''
         }
     }
