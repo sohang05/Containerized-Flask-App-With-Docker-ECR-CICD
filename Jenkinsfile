@@ -53,12 +53,13 @@ pipeline {
               --query "Command.CommandId" \
               --output text \
               --parameters 'commands=[
-                "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 474150620111.dkr.ecr.us-east-1.amazonaws.com",
-                "docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest",
-                "docker stop flask-app || true",
-                "docker rm flask-app || true",
-                "docker run -d -p 80:5000 --name flask-app 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest"
-              ]')
+  "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 474150620111.dkr.ecr.us-east-1.amazonaws.com",
+  "docker stop flask-app || true",
+  "docker rm flask-app || true",
+  "docker rmi 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest || true",
+  "docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest",
+  "docker run -d -p 80:5000 --name flask-app 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest"
+]')
 
             echo "Command ID: $COMMAND_ID"
 
