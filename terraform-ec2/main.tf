@@ -76,7 +76,6 @@ resource "aws_default_subnet" "default_az1" {
 resource "aws_instance" "flask_ec2" {
   ami                    = "ami-098e39bafa7e7303d"
   instance_type          = "t3.small"
-  associate_public_ip_address = true
   subnet_id              = aws_default_subnet.default_az1.id
   vpc_security_group_ids = [aws_security_group.flask_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
@@ -111,6 +110,15 @@ EOF
   tags = {
     Name = "Flask-App-EC2"
   }
+}
+
+resource "aws_eip" "flask_eip" {
+  domain = "vpc"
+}
+
+resource "aws_eip_association" "flask_eip_assoc" {
+  instance_id   = aws_instance.flask_ec2.id
+  allocation_id = aws_eip.flask_eip.id
 }
 
 # ---------------- JENKINS SECURITY GROUP ----------------
@@ -153,7 +161,6 @@ resource "aws_instance" "jenkins_ec2" {
     volume_type = "gp3"
   }
 
-  associate_public_ip_address = true
   subnet_id                   = aws_default_subnet.default_az1.id
   vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
@@ -204,4 +211,13 @@ EOF
   tags = {
     Name = "Jenkins-Server"
   }
+}
+
+resource "aws_eip" "jenkins_eip" {
+  domain = "vpc"
+}
+
+resource "aws_eip_association" "jenkins_eip_assoc" {
+  instance_id   = aws_instance.jenkins_ec2.id
+  allocation_id = aws_eip.jenkins_eip.id
 }

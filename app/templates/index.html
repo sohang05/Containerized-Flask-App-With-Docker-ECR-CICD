@@ -3,15 +3,50 @@
 <head>
     <title>Docker Flask App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.1em;
+            margin: 8px 0;
+        }
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .timestamp {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 0.85em;
+            color: #555;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Flask App Running in Docker - CI/CD Test</h1>
-    <p>Container Hostname: {{ hostname }}</p>
-    <p style="color: red; font-weight: bold;">Pipeline change deployed successfully!</p>
-    <p style="font-size: 0.9em; color: gray;">Deployment Time: {{ deployment_time }}</p>
+    <h1>🚀 Flask App Running in Docker - CI/CD Test</h1>
+    <p>Container Hostname: <strong>{{ hostname }}</strong></p>
+    <p class="success">✅ Pipeline change deployed successfully!</p>
+    <p class="timestamp">Deployment Time: {{ deployment_time }}</p>
 
-    <footer style="margin-top: 20px; font-size: 0.8em; color: #555;">
-        <p>Powered by Flask & Docker.....</p>
+    <footer>
+        <p>Powered by Flask & Docker | CI/CD Automation</p>
     </footer>
 </body>
 </html>
