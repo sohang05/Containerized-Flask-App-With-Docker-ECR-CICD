@@ -101,18 +101,18 @@ Code Push → Jenkins Webhook → Build → Push to ECR → Deploy to EC2 → Li
 
 ### Backend & Application
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Python | 3.10+ | Programming language |
-| Flask | 2.x | Web framework |
-| Flask-SocketIO | Optional | WebSocket support |
+| Technology | Purpose |
+|------------|---------|
+| Python | Programming language |
+| Flask | Web framework |
+| Flask-SocketIO | WebSocket support |
 
 ### Containerization & Orchestration
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| Docker | 20.10+ | Containerization |
-| Docker Compose | 1.29+ | Local orchestration |
+| Technology | Purpose |
+|-----------|---------|
+| Docker | Containerization |
+| Docker Compose | Local orchestration |
 
 ### Cloud & Infrastructure
 
@@ -126,12 +126,12 @@ Code Push → Jenkins Webhook → Build → Push to ECR → Deploy to EC2 → Li
 
 ### CI/CD & Automation
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| Jenkins | 2.387+ | CI/CD orchestration |
-| Terraform | 1.4+ | Infrastructure as Code |
-| Git | 2.36+ | Version control |
-| Bash/PowerShell | Latest | Scripting |
+| Technology | Purpose |
+|-----------|---------|
+| Jenkins | CI/CD orchestration |
+| Terraform | Infrastructure as Code |
+| Git | Version control |
+| Bash/PowerShell | Scripting |
 
 ---
 
@@ -709,28 +709,28 @@ git push origin main
 
 ```
 ┌─────────────────────────────────────┐
-│         GitHub / Git Repo            │
+│         GitHub / Git Repo           │
 └──────────────┬──────────────────────┘
                │ (Webhook on push)
                ↓
 ┌─────────────────────────────────────┐
-│      Jenkins EC2 (t3.small)          │
-│  - Pipeline orchestration            │
-│  - Docker build                      │
-│  - Push to ECR                       │
+│      Jenkins EC2 (t3.small)         │
+│  - Pipeline orchestration           │
+│  - Docker build                     │
+│  - Push to ECR                      │
 └──────────────┬──────────────────────┘
                │ (SSM send-command)
                ↓
 ┌─────────────────────────────────────┐
-│      Flask EC2 (t3.small)            │
-│  - Docker container                  │
+│      Flask EC2 (t3.small)           │
+│  - Docker container                 │
 │  - Port 80 → 5000 mapping           │
-│  - Auto-startup via user_data        │
+│  - Auto-startup via user_data       │
 └──────────────┬──────────────────────┘
                │ (HTTP requests)
                ↓
 ┌─────────────────────────────────────┐
-│            Users / Clients            │
+│            Users / Clients          │
 └─────────────────────────────────────┘
 ```
 
@@ -739,9 +739,9 @@ git push origin main
 ```bash
 # After terraform apply
 
-Jenkins URL:  http://54.123.45.68:8080
-Flask URL:    http://54.123.45.67
-ECR Repo:     474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app
+Jenkins URL:  http://54.xxx.xx.68:8080
+Flask URL:    http://54.xxx.xx.67
+ECR Repo:     xxxxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/flask-app
 ```
 
 ### Scaling Considerations
@@ -844,7 +844,7 @@ $ sudo systemctl restart amazon-ssm-agent
 # Verify ECR login
 aws ecr get-login-password --region us-east-1 | \
 docker login --username AWS --password-stdin \
-474150620111.dkr.ecr.us-east-1.amazonaws.com
+xxxxxxxxx.dkr.ecr.us-east-1.amazonaws.com
 
 # Verify credentials
 aws sts get-caller-identity
@@ -884,7 +884,7 @@ $ curl localhost:5000
 
 # Test ECR access from EC2
 $ aws ecr get-login-password --region us-east-1 | docker login ...
-$ docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+$ docker pull xxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
 ```
 
 ---
@@ -907,7 +907,7 @@ $ docker pull 474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
 #### 2. Use Environment Variables for Secrets
 ```bash
 # ❌ WRONG (visible in code)
-ECR_REPO = "474150620111.dkr.ecr.us-east-1.amazonaws.com/flask-app"
+ECR_REPO = "xxxxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/flask-app"
 
 # ✓ RIGHT (injected at runtime)
 environment {
@@ -954,173 +954,14 @@ resource "aws_ecr_repository" "flask_app" {
   }
 }
 ```
-
-#### 6. Use Non-Root Container User
-```dockerfile
-# ❌ WRONG (runs as root)
-FROM python:3.10-slim
-CMD ["python", "app/app.py"]
-
-# ✓ RIGHT (non-root user)
-RUN useradd -m -u 1000 appuser
-USER appuser
-CMD ["python", "app/app.py"]
-```
-
 ---
-
-## What NOT to Commit to GitHub
-
-### 1. Sensitive Files
-```
-# Add to .gitignore
-terraform.tfstate
-terraform.tfstate.backup
-.terraform/
-**/*.key
-**/*.pem
-**/*.pfx
-.env
-.env.local
-.env.*.local
-secrets.json
-credentials.json
-```
-
-### 2. Terraform State (Critical!)
-```bash
-# NEVER commit state files
-# State contains:
-# - Database passwords
-# - API keys
-# - Private IPs
-# - Sensitive configurations
-
-# Instead: Store remotely
-# terraform {
-#   backend "s3" {
-#     bucket = "my-terraform-state"
-#     key    = "prod/terraform.tfstate"
-#     region = "us-east-1"
-#   }
-# }
-```
-
-### 3. Jenkins Artifacts
-```
-# Don't commit:
-jenkins-logs/
-*.log
-build/
-dist/
-*.jks (keystore files)
-```
-
-### 4. Build Artifacts
-```
-# Don't commit:
-__pycache__/
-.pytest_cache/
-*.pyc
-*.pyo
-.coverage
-htmlcov/
-dist/
-build/
-*.egg-info/
-```
-
-### 5. IDE/Editor Files
-```
-# Don't commit:
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-```
-
-### 6. Updated .gitignore Template
-
-```gitignore
-# Terraform
-terraform-ec2/.terraform/
-terraform-ec2/terraform.tfstate
-terraform-ec2/terraform.tfstate.backup
-terraform-ec2/terraform.tfstate.d/
-terraform-ec2/.terraform.lock.hcl
-
-# AWS credentials
-*.key
-*.pem
-credentials.json
-~/.aws/
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.Python
-env/
-venv/
-pip-log.txt
-.coverage
-.pytest_cache/
-htmlcov/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Jenkins
-*.log
-jenkins-logs/
-
-# Node (if used)
-node_modules/
-npm-debug.log
-
-# OS
-Thumbs.db
-.directory
-```
-
----
-
 ## Improvements & Enhancements
 
 ### Short Term (1-2 days)
 
 1. **Add Unit Tests**
-   ```bash
-   pip install pytest pytest-cov
-   pytest app/ --cov=app
-   ```
-
 2. **Add Code Quality Checks**
-   ```bash
-   pip install black pylint bandit
-   black app/
-   pylint app/
-   bandit -r app/
-   ```
-
 3. **Add Health Check**
-   ```dockerfile
-   HEALTHCHECK --interval=30s --timeout=3s \
-     CMD curl -f http://localhost:5000/ || exit 1
-   ```
-
 4. **Configure CloudWatch Logs**
    - Centralize container logs
    - Set up basic alarms
@@ -1128,42 +969,13 @@ Thumbs.db
 ### Medium Term (1-2 weeks)
 
 1. **Add Database**
-   ```hcl
-   resource "aws_db_instance" "postgres" {
-     engine = "postgres"
-     instance_class = "db.t3.micro"
-   }
-   ```
-
 2. **Implement Blue-Green Deployment**
    - Run old and new versions simultaneously
    - Switch traffic when new version ready
    - Instant rollback if needed
-
 3. **Add SSL/HTTPS**
-   ```hcl
-   resource "aws_acm_certificate" "cert" {
-     domain_name = "example.com"
-   }
-   
-   resource "aws_lb_listener" "https" {
-     port = 443
-     protocol = "HTTPS"
-   }
-   ```
-
 4. **Add Load Balancer**
-   ```hcl
-   resource "aws_lb" "main" {
-     load_balancer_type = "application"
-   }
    
-   resource "aws_autoscaling_group" "main" {
-     min_size = 2
-     max_size = 5
-   }
-   ```
-
 ### Long Term (Ongoing)
 
 1. **Kubernetes Migration**
