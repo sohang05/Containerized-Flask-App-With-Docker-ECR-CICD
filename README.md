@@ -24,7 +24,6 @@
 - [AWS Deployment](#aws-deployment)
 - [Monitoring & Troubleshooting](#monitoring--troubleshooting)
 - [Important Security Notes](#important-security-notes)
-- [What NOT to Commit to GitHub](#what-not-to-commit-to-github)
 - [Improvements & Enhancements](#improvements--enhancements)
 - [Contributing](#contributing)
 - [License](#license)
